@@ -1,0 +1,5 @@
+asyncpg==0.27.0
+databases==0.7.0
+greenlet==2.0.2
+psycopg2-binary==2.9.5
+SQLAlchemy==1.4.46
