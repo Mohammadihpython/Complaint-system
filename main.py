@@ -1,3 +1,4 @@
+import enum
 import re
 from datetime import datetime, timedelta
 from typing import Optional
@@ -19,6 +20,13 @@ metadata = sqlalchemy.MetaData()
 app = FastAPI()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
+class UserRole(enum.Enum):
+    super_admin = "super admin"
+    admin = "admin"
+    user = " user"
+
+
 users = sqlalchemy.Table(
     "users",
     metadata,
@@ -34,6 +42,7 @@ users = sqlalchemy.Table(
         "modified_at", sqlalchemy.DateTime,
         server_default=sqlalchemy.func.now(),
         onupdate=sqlalchemy.func.now()),
+    sqlalchemy.Column("role", sqlalchemy.Enum(UserRole),nullable=False,server_default=UserRole.user.name)
 ),
 
 
@@ -131,11 +140,19 @@ class CustomHTTPBearer(HTTPBearer):
 
 oauth_schema = CustomHTTPBearer()
 
-
+def is_admin(request:Request):
+    user = request.state.user
+    if not user or user["role"] not in ["admin", "super-admin"]:
+        raise HTTPException(403, "you must be admin")
+    
+        
 @app.get("/clothes", dependencies=[Depends(oauth_schema)])
 async def get_all_clothes():
     return []
 
+@app.post("/clothes", dependencies=[Depends(oauth_schema),Depends(is_admin)])
+async def create_clothes()
+          
 
 @app.post("/register/")
 async def create_user(user: UserSignIn):
@@ -145,6 +162,7 @@ async def create_user(user: UserSignIn):
     created_user = await database.fetch_one(users.select().where(users.c.id == _id))
     token = create_access_token(created_user)
     return {'token': token}
+
 
 
 if __name__ == "__main__":
