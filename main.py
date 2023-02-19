@@ -151,7 +151,8 @@ async def get_all_clothes():
     return []
 
 @app.post("/clothes", dependencies=[Depends(oauth_schema),Depends(is_admin)])
-async def create_clothes()
+async def create_clothes():
+    pass
           
 
 @app.post("/register/")
