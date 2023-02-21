@@ -33,7 +33,7 @@ class CustomHTTPBearer(HTTPBearer):
         try:
             payload = jwt.decode(res.credentials, settings.SECRET_KEY, algorithms=["HS256"])
             user_data = await database.fetch_one(user.select().where(user.c.id == payload["sub"]))
-            """ store user data in request state to use globally"""
+            """ ComplaintSystem user data in request state to use globally"""
             request.state.user = user_data
             return user_data
         except jwt.ExpiredSignatureError:
