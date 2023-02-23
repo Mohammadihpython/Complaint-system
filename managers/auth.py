@@ -3,11 +3,12 @@ from typing import Optional
 from db import database
 import jwt
 from config import settings
+from datetime import timezone
 from fastapi import HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.requests import Request
 
-from models import user
+from models import user, RoleType
 
 
 class AuthManager:
@@ -16,7 +17,7 @@ class AuthManager:
         try:
             payload = {
                 "sub": user["id"],
-                "exp": datetime.utcnow() + timedelta(minutes=120)
+                "exp": datetime.now(timezone.utc) + timedelta(minutes=120),
             }
             return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
         except Exception as ex:
@@ -36,7 +37,34 @@ class CustomHTTPBearer(HTTPBearer):
             """ ComplaintSystem user data in request state to use globally"""
             request.state.user = user_data
             return user_data
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(401, "token is exp")
-        except jwt.InvalidTokenError:
-            raise HTTPException(401, "Invalid token")
+        except jwt.ExpiredSignatureError as e:
+            raise HTTPException(401, "token is exp") from e
+        except jwt.InvalidTokenError as e:
+            raise HTTPException(401, "Invalid token") from e
+
+
+oauth2_scheme = CustomHTTPBearer()
+
+
+def is_complainer(request: Request):
+    if request.state.user["role"] != RoleType.complainer:
+        raise HTTPException(403, "Forbidden")
+
+
+def is_approver(request: Request):
+    if request.state.user["role"] != RoleType.approver:
+        raise HTTPException(403, "Forbidden")
+
+
+def is_admin(request: Request):
+    if not request.state.user["role"] == RoleType.admin:
+        raise HTTPException(403, "Forbidden")
+
+# used DRY concept
+# def check_role(request: Request, role_type: RoleType):
+#     if not request.state.user["role"] == role_type:
+#         raise HTTPException(403, "Forbidden")
+
+# is_complainer = lambda request: check_role(request, RoleType.complainer)
+# is_approver = lambda request: check_role(request, RoleType.approver)
+# is_admin = lambda request: check_role(request, RoleType.admin)
