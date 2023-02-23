@@ -57,7 +57,7 @@ def is_approver(request: Request):
 
 
 def is_admin(request: Request):
-    if not request.state.user["role"] == RoleType.admin:
+    if request.state.user["role"] != RoleType.admin:
         raise HTTPException(403, "Forbidden")
 
 # used DRY concept
