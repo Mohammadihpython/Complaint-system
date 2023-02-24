@@ -27,13 +27,17 @@ class AuthManager:
 
 class CustomHTTPBearer(HTTPBearer):
     async def __call__(
-            self, request: Request
+        self, request: Request
     ) -> Optional[HTTPAuthorizationCredentials]:
         res = await super().__call__(request)
 
         try:
-            payload = jwt.decode(res.credentials, settings.SECRET_KEY, algorithms=["HS256"])
-            user_data = await database.fetch_one(user.select().where(user.c.id == payload["sub"]))
+            payload = jwt.decode(
+                res.credentials, settings.SECRET_KEY, algorithms=["HS256"]
+            )
+            user_data = await database.fetch_one(
+                user.select().where(user.c.id == payload["sub"])
+            )
             """ ComplaintSystem user data in request state to use globally"""
             request.state.user = user_data
             return user_data
@@ -59,6 +63,7 @@ def is_approver(request: Request):
 def is_admin(request: Request):
     if request.state.user["role"] != RoleType.admin:
         raise HTTPException(403, "Forbidden")
+
 
 # used DRY concept
 # def check_role(request: Request, role_type: RoleType):

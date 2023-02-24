@@ -5,7 +5,7 @@ from models import complaint, RoleType, State
 class ComplaintManager:
     @staticmethod
     async def get_complaints(user):
-        """ get user complaints only"""
+        """get user complaints only"""
         query = complaint.select()
         if user["role"] == RoleType.complainer:
             query = query.where(complaint.c.complainer_id == user["id"])
@@ -22,3 +22,19 @@ class ComplaintManager:
     @staticmethod
     async def delete(complaint_id):
         await database.execute(complaint.delete().where(complaint.c.id == complaint_id))
+
+    @staticmethod
+    async def approve(id_):
+        await database.execute(
+            complaint.update()
+            .where(complaint.c.id == id_)
+            .values(status=State.approved)
+        )
+
+    @staticmethod
+    async def reject(id_):
+        await database.execute(
+            complaint.update()
+            .where(complaint.c.id == id_)
+            .values(status=State.rejected)
+        )

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from managers.user import UserManager
-from schemas.request.user import UserRegisterIn,UserLoginIn
+from schemas.request.user import UserRegisterIn, UserLoginIn
 
 router = APIRouter(tags=["Auth"])
 
@@ -13,6 +13,6 @@ async def register(user_data: UserRegisterIn):
 
 
 @router.post("/login", status_code=200)
-async def login(user_data:UserLoginIn):
+async def login(user_data: UserLoginIn):
     token = await UserManager.login(user_data.dict())
     return {"token": token}

@@ -20,3 +20,9 @@ docker-compose up --build
 `alembic revision --autogenerate -m "intial tables"`
 #
 `alembic upgrade head`
+
+## create super user COMMAND LINE
+
+`export PYTHONPATH=./`
+then
+`python commands/create_super_user.py -f admin -l test -e a@a.com -p 1234534563 -i Gw324234234324 -pa 123445`
