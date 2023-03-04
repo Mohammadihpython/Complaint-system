@@ -1,5 +1,13 @@
+import os
+import uuid
+
+from constants import TEMP_FILE_FOLDER
 from db import database
 from models import complaint, RoleType, State
+from services.s3 import S3Service
+from utils.helpers import decode_photo
+
+s3 = S3Service()
 
 
 class ComplaintManager:
@@ -16,6 +24,13 @@ class ComplaintManager:
     @staticmethod
     async def create_complaint(complaint_data, user):
         complaint_data["complainer_id"] = user["id"]
+        encoded_photo = complaint_data.pop("encoded_photo", None)
+        extension = complaint_data.pop("extension", None)
+        name = f"{uuid.uuid4()}.{extension}"
+        path = os.path.join(TEMP_FILE_FOLDER, name)
+        decode_photo(path, encoded_photo)
+        complaint_data["photo_url"] = s3.upload(path, key=name, ext=extension)
+        os.remove(path)
         id_ = await database.execute(complaint.insert().values(complaint_data))
         return await database.fetch_one(complaint.select().where(complaint.c.id == id_))
 

@@ -3,7 +3,7 @@ from db import database
 from resources.routers import api_router
 from fastapi.middleware.cors import CORSMiddleware
 
-origins = ["http://loclahost" "http://loclahost:4200"]
+origins = ["http://loclahost", "http://loclahost:4200"]
 
 app = FastAPI()
 app.include_router(api_router)
