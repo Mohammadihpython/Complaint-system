@@ -5,9 +5,11 @@ from constants import TEMP_FILE_FOLDER
 from db import database
 from models import complaint, RoleType, State
 from services.s3 import S3Service
+from services.ses import S3SService
 from utils.helpers import decode_photo
 
 s3 = S3Service()
+ses = S3SService()
 
 
 class ComplaintManager:
@@ -40,10 +42,16 @@ class ComplaintManager:
 
     @staticmethod
     async def approve(id_):
+
         await database.execute(
             complaint.update()
             .where(complaint.c.id == id_)
             .values(status=State.approved)
+        )
+        ses.send_mail(
+            subject= "Complaint approved !",
+            to_addresses= "",
+            text_data="congrats ! your claim is approved ,"
         )
 
     @staticmethod
